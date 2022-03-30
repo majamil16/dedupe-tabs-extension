@@ -16,3 +16,6 @@ Window
 * IMPORTANT https://stackoverflow.com/questions/51411142/connect-from-popup-html-to-background-js-script-in-chrome-extension
 
 * Icons : https://css.gg/
+
+To check localStorage in chrome dev tools:
+`chrome.storage.local.get(function(result){console.log(result)})`

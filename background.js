@@ -1,6 +1,6 @@
 console.log("This is my extension!!");
-let TABS = [];
-
+let TABS;
+let SORTEDTABS;
 
 const LOGGING = true; // change to true / false 
 
@@ -36,9 +36,24 @@ const logger = (str) => {
 //  * 
 //  */
 const getAllTabs = async (params = { sorted: true }) => {
-  let [tabs] = await chrome.tabs.query(queryOptions); chrome.tabs.query({})
+  // let queryOptions = { active: true };
+  let queryOptions = {} // don't pass any options - to get all tabs
+  let tabs = await chrome.tabs.query(queryOptions);
+
+  // only care about these fields
+  const keys_to_keep = ['id',
+    'title',
+    'url',
+    'windowId'];
+  let filteredTabs = tabs.map(o => keys_to_keep.reduce((acc, curr) => {
+    // logger(o.id)
+    acc[curr] = o[curr];
+    // acc[o.id] = o[curr];
+    return acc;
+  }, {}))
   if (params.sorted) {
-    let sortedTabs = tabs.sort(function (a, b) {
+    // let sortedTabs = tabs.sort(function (a, b) {
+      let sortedTabs = filteredTabs.sort(function (a, b) {
       var urlA = a.url.toUpperCase(); // ignore upper and lowercase
       var urlB = b.url.toUpperCase(); // ignore upper and lowercase
       if (urlA < urlB) {
@@ -50,9 +65,9 @@ const getAllTabs = async (params = { sorted: true }) => {
       return 0;  // names must be equal
     });
 
-    return { tabs, sortedTabs }
+    return { filteredTabs, sortedTabs }
   }
-  return { tabs }
+  return { filteredTabs }
 
 }
 
@@ -98,12 +113,12 @@ const getDupes = async (allTabs) => {
 (function () {
 
   chrome.tabs.onRemoved.addListener(async (tab) => {
-    console.log('chrome.tabs.onRemoved.addListener')
+    logger('chrome.tabs.onRemoved.addListener')
     await updateStorage(tab);
   });
 
   chrome.tabs.onCreated.addListener((tab) => {
-    console.log('chrome.tabs.onCreated.addListener')
+    logger('chrome.tabs.onCreated.addListener')
     // getAllWindows();
   });
 
@@ -111,14 +126,36 @@ const getDupes = async (allTabs) => {
 }());
 
 // Our background page isn't persistent, so subscribe to events.
-chrome.runtime.onStartup.addListener(() => { console.log("startup!");init(); });
+chrome.runtime.onStartup.addListener(() => {
+  logger("startup!");
+  (async () => {
+    init();
+  })();
+});
 // onInstalled fires when user uses chrome://extensions page to reload
-chrome.runtime.onInstalled.addListener(() => {  console.log("onInstalled!"); init(); });
+chrome.runtime.onInstalled.addListener(() => {
+  logger("onInstalled!");
+  (async () => {
+    init();
+  })();
+});
 
-const init = () => {
+const init = async () => {
   // initialize the tabs in LocalStorage
-  console.log("init!")
-  
+  logger("init!")
+
+  let mytabs = await getAllTabs({ sorted: true })
+  TABS = mytabs.tabs;
+  SORTEDTABS = mytabs.sortedTabs;
+
+  chrome.storage.local.set({ 'sorted_tabs': SORTEDTABS }, () => {
+    logger('Set sorted tabs')
+  })
+
+  logger(SORTEDTABS)
+
+
+
 }
 
 // Listen for the sent message from popup.js

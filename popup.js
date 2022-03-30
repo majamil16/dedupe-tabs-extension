@@ -1,24 +1,26 @@
-let allTabs = [];
+// let allTabs = [];
 let sortedTabs = [];
 
 // TODO - instead of this - query it from chrome storage which is initialized on chrome startup / extension startup
-chrome.tabs.query({}, tabs => {
-  allTabs = tabs;
-
+chrome.storage.local.get(['sorted_tabs'], (result) => {
+  sortedTabs = result;
+  console.log('RESULT IS:');
+  console.log(result);
   // sort URLS into alphabetical order
-  sortedTabs = allTabs.sort(function (a, b) {
-    var urlA = a.url.toUpperCase(); // ignore upper and lowercase
-    var urlB = b.url.toUpperCase(); // ignore upper and lowercase
-    if (urlA < urlB) {
-      return -1; //urlA comes first
-    }
-    if (urlA > urlB) {
-      return 1; // urlB comes first
-    }
-    return 0;  // names must be equal
-  });
+  // sortedTabs = allTabs.sort(function (a, b) {
+  //   var urlA = a.url.toUpperCase(); // ignore upper and lowercase
+  //   var urlB = b.url.toUpperCase(); // ignore upper and lowercase
+  //   if (urlA < urlB) {
+  //     return -1; //urlA comes first
+  //   }
+  //   if (urlA > urlB) {
+  //     return 1; // urlB comes first
+  //   }
+  //   return 0;  // names must be equal
+  // });
   
-  getTabsPerWebsite(sortedTabs)
+
+  // getTabsPerWebsite(sortedTabs);
   displayTabsInPopup();
 });
 
@@ -81,7 +83,11 @@ const createTabElement = (tab) => {
 }
 
 // Define function to display the sorted tabs in the popup
+// TODO - fix
 const displayTabsInPopup = () => {
+  console.log("THIS IS WHAT WILL BE XcreateElementREA");
+  console.log(sortedTabs);
+  console.log(...sortedTabs.map(createTabElement));
   document.body.appendChild(document.createElement('ul'))
     .append(...sortedTabs.map(createTabElement));
 }
