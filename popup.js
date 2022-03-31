@@ -4,7 +4,7 @@ let sortedTabs = [];
 chrome.storage.local.get(['sorted_tabs'], (result) => {
   sortedTabs = result['sorted_tabs'];
 
-  // getTabsPerWebsite(sortedTabs);
+  getTabsPerWebsite(sortedTabs);
   displayTabsInPopup();
 });
 
@@ -13,12 +13,13 @@ chrome.storage.local.get(['sorted_tabs'], (result) => {
 */
 const getTabsPerWebsite = (tabs) => {
   // let basenames = sortedTabs.
-  let basenames = tabs.forEach(t => {return t.url.toString().split('/')[2]});
-  // WHY ISNT THIS WORKING?!
+  let basenames = tabs.map(t => {console.log( "basename : " + t.url.toString().split('/')[2] + 'url : ' + t.url);return t.url.toString().split('/')[2]});
+  
+  // console.log(basenames);
 
-  // basenames.forEach (b => {
-  //   console.log("Basename" + b);
-  // }) 
+  basenames.forEach (b => {
+    console.log("Basename" + b);
+  }) 
   // basenames.map(b => {
   //   console.log("Basename" + b);
   // })
@@ -62,8 +63,6 @@ const createTabElement = (tab) => {
 
   li.appendChild(xic)
 
-  console.log('li')
-  console.log(li)
   return li;
 }
 
