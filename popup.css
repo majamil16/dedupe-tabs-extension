@@ -1,3 +1,12 @@
 body {
   width: 400px;
 }
+
+i.gg-arrow-top-right-r:hover  {
+  background-color: green;
+}
+
+
+i.gg-close-r:hover  {
+  background-color: red;
+}
