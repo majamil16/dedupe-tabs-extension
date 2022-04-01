@@ -8,21 +8,41 @@ chrome.storage.local.get(['sorted_tabs'], (result) => {
   displayTabsInPopup();
 });
 
-/* Split the url to organize by website 
+/* Split the url to organize the sorted tabs by website 
   ex. www.abc.com/login, www.abc.com/tab1, www.abc.com/tab2, www.abc.com/tab2, 
 */
 const getTabsPerWebsite = (tabs) => {
-  // let basenames = sortedTabs.
-  let basenames = tabs.map(t => {console.log( "basename : " + t.url.toString().split('/')[2] + 'url : ' + t.url);return t.url.toString().split('/')[2]});
+  // let basenames = tabs.map(t => {console.log( "basename : " + t.url.toString().split('/')[2] + 'url : ' + t.url);return t.url.toString().split('/')[2]});
   
-  // console.log(basenames);
+  let URLS = tabs.map(t => {return {tabId: t.id, tabUrl: new URL(t.url)}});
 
-  basenames.forEach (b => {
-    console.log("Basename" + b);
+  // console.log(basenames);
+  // let uniqueUrlsKeys = Object.keys(URLS)
+  let uniqueUrls = {}
+
+  URLS.forEach (u => {
+    console.log("Origin@" + u.tabUrl.origin);
+    // uniqueUrls[u.hostname].push(u)
+    
+    // check if hostname is already in uniqueURLS => append it else initialize it
+    if (uniqueUrls[u.tabUrl.origin] == null ){ 
+      console.log('initialize')
+      uniqueUrls[u.tabUrl.origin] = []; 
+    }
+    console.log('KEY')
+    console.log(uniqueUrls[u.tabUrl.origin])
+
+    console.log('VAL')
+    console.log(u.tabUrl.origin)
+    // uniqueUrls[u.tabUrl.origin].push(u); // TODO - figure out - store the whole thing here or just tab ID? because url can be retrieved from Id (in stored_tabs). 
+    // also potentially - flatten response of sortedTabs to get {id:tabInfo} as k:v instead of list [tabInfo, tabInfo, ...] to retrieve tabInfo by id
+    uniqueUrls[u.tabUrl.origin].push(u.tabId); // ^^ like this instead
+
   }) 
-  // basenames.map(b => {
-  //   console.log("Basename" + b);
-  // })
+  
+  console.log('unique urls : ')
+  console.log(uniqueUrls)
+  // for 
 
 }
 
