@@ -1,5 +1,16 @@
 body {
   width: 400px;
+  height: 700px;
+}
+
+.ext-container {
+  background-color: #fed9ff;
+  /* width: 600px; */
+  height: 520px; 
+  overflow-x: hidden;
+  overflow-y: auto;
+  text-align: center;
+  padding: 10px;
 }
 
 i.gg-arrow-top-right-r:hover  {

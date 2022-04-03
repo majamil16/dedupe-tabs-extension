@@ -1,23 +1,26 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" type="text/css" href="popup.css">
-  <link href='https://css.gg/css' rel='stylesheet'>
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" type="text/css" href="popup.css" />
+    <link href="https://css.gg/css" rel="stylesheet" />
 
-  <title>My Extension</title>
-</head>
-<body>
-  <div class="ext-container">
-    <h1>My Popup</h1>
-    <ul id="tabs-list"></ul>
-    <script src="popup.js"></script>
-  </div>
-  <div class="buttons">
-    <button>Dedupe!</button>
-    <button>Saved</button>
-  </div>  
-</body>
+    <title>My Extension</title>
+    
+  </head>
+  <body>
+    <div class="ext-container">
+      <h1>My Popup</h1>
+      <ul id="tabs-list"></ul>
+      
+    </div>
+    <div class="buttons">
+      <button id="dedupe-btn">Dedupe!</button>
+      <button id="saved-btn">Saved</button>
+    </div>
+    <script src="popup.js"></script> <!-- script after everything else in the body to be able to reference document.getElement... -->
+  </body>
+  
 </html>

@@ -1,12 +1,32 @@
 // let allTabs = [];
 let sortedTabs = [];
+let sortedTabsDict = {};
 
-chrome.storage.local.get(['sorted_tabs'], (result) => {
-  sortedTabs = result['sorted_tabs'];
+// const LEVELS = Object.freeze({0:'DEBUG', 1:'WARNING', 2:'ERROR'}); // from least to most restrictive
+const LEVELS = Object.freeze({'DEBUG':0, 'WARNING':1, 'ERROR':2}); // from least to most restrictive
+const LOGGING_LEVEL = 'DEBUG'; 
+const LOGGING = true; // change to true / false 
 
-  getTabsPerWebsite(sortedTabs);
-  displayTabsInPopup();
-});
+console.log('popup.js > LOGGING_LEVEL=' + LOGGING_LEVEL + ' LOGGING ENABLED?' + LOGGING )
+
+const logger = (str,level='DEBUG') => {
+  let lvl = LEVELS.level
+  console.log(LEVELS.level)
+  // let log_lvl = LEVELS.LOGGING_LEVEL
+  if (LOGGING && (lvl >= LEVELS.LOGGING_LEVEL)) { // if the level of what we are logging is >= LOGGING_LEVEL -> print to console (when LOGGING_LEVEL = log everything. when it's ERROR, only log errors)
+    console.log('-' + level + '-')
+    console.log(str);
+  }
+}
+
+
+// chrome.storage.local.get(['sorted_tabs'], (result) => {
+//   sortedTabs = result['sorted_tabs'];
+//   logger(sortedTabs, 'DEBUG')
+
+//   // getTabsPerWebsite(sortedTabs);
+//   displayTabsInPopup();
+// });
 
 /* Split the url to organize the sorted tabs by website 
   ex. www.abc.com/login, www.abc.com/tab1, www.abc.com/tab2, www.abc.com/tab2, 
@@ -21,28 +41,27 @@ const getTabsPerWebsite = (tabs) => {
   let uniqueUrls = {}
 
   URLS.forEach (u => {
-    console.log("Origin@" + u.tabUrl.origin);
+    logger("Origin@" + u.tabUrl.origin, 'DEBUG');
     // uniqueUrls[u.hostname].push(u)
     
     // check if hostname is already in uniqueURLS => append it else initialize it
     if (uniqueUrls[u.tabUrl.origin] == null ){ 
-      console.log('initialize')
+      // console.log('initialize')
       uniqueUrls[u.tabUrl.origin] = []; 
     }
-    console.log('KEY')
-    console.log(uniqueUrls[u.tabUrl.origin])
+    logger('KEY', 'DEBUG')
+    logger(uniqueUrls[u.tabUrl.origin], 'DEBUG')
 
-    console.log('VAL')
-    console.log(u.tabUrl.origin)
+    logger('VAL', 'DEBUG')
+    logger(u.tabUrl.origin, 'DEBUG')
     // uniqueUrls[u.tabUrl.origin].push(u); // TODO - figure out - store the whole thing here or just tab ID? because url can be retrieved from Id (in stored_tabs). 
     // also potentially - flatten response of sortedTabs to get {id:tabInfo} as k:v instead of list [tabInfo, tabInfo, ...] to retrieve tabInfo by id
     uniqueUrls[u.tabUrl.origin].push(u.tabId); // ^^ like this instead
 
   }) 
   
-  console.log('unique urls : ')
-  console.log(uniqueUrls)
-  // for 
+  // console.log('unique urls : ')
+  // console.log(uniqueUrls)
 
 }
 
@@ -57,12 +76,12 @@ const createTabElement = (tab) => {
   ic.className = 'gg-arrow-top-right-r'
   // open the tab when icon clicked
   ic.onclick = () => {
-    console.log('Clicked!')
-    console.log(tab.id)
-    console.log(tab.windowId)
+    logger('Clicked!', 'DEBUG')
+    logger(tab.id, 'DEBUG')
+    logger(tab.windowId, 'DEBUG')
     chrome.runtime.sendMessage({ type: "changeTab", tabId: tab.id, windowId: tab.windowId }, (response) => {
-      console.log('sent changeTab message')
-      console.log(response)
+      logger('sent changeTab message', 'DEBUG')
+      logger(response, 'DEBUG')
     });
   };
 
@@ -73,11 +92,11 @@ const createTabElement = (tab) => {
   xic.className = 'gg-close-r'
   // open the tab when icon clicked
   xic.onclick = () => {
-    console.log('Clicked close!')
-    console.log(tab.id)
-    console.log(tab.windowId)
+    logger('Clicked close!', 'DEBUG')
+    logger(tab.id, 'DEBUG')
+    logger(tab.windowId, 'DEBUG')
     chrome.runtime.sendMessage({ type: "closeTab", tabId: tab.id, windowId: tab.windowId }, (response) => {
-      console.log('sent closeTab message')
+      logger('sent closeTab message', 'DEBUG')
     });
   };
 
@@ -92,6 +111,16 @@ const displayTabsInPopup = () => {
   tabsList.append(...sortedTabs.map(createTabElement)); // use append to append multiple children at once
 }
 
+const onDedupe = () => {
+  console.log('Dedupe!')
+}
+const onSaved = () => {
+  console.log('onSaved!')
+}
+
+// add listeners for button clicks
+document.getElementById("dedupe-btn").addEventListener("click", onDedupe);
+document.getElementById("saved-btn").addEventListener("click", onSaved);
 
 // Send message to background.js
 // document.getElementsByClassName("gg-arrow-top-right-r").addEventListener("click",function(){
@@ -103,3 +132,11 @@ const displayTabsInPopup = () => {
 // });
 
 // add event listener for 
+
+chrome.storage.onChanged.addListener((changes, namespace) => {
+  console.log('changes')
+  console.log(changes)
+
+  console.log('namespace')
+  console.log(namespace)
+})
