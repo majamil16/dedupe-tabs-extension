@@ -6,13 +6,10 @@ const LOGGING = true; // change to true / false
 
 const logger = (str) => {
   if (LOGGING) {
-    console.log("My lgger===")
+    console.log("My logger===")
     console.log(str);
   }
 }
-
-
-// chrome.tabs.onActivated.addListener(newTab => getCurrentTab);
 
 
 // async function getCurrentTab() {
@@ -20,15 +17,6 @@ const logger = (str) => {
 //   let [tab] = await chrome.tabs.query(queryOptions);
 //   logger(tab)
 //   return tab;
-// }
-
-
-
-// async function getAllWindows() {
-//   let queryOptions = { populate: true };
-//   let windows = await chrome.windows.getAll(queryOptions)
-//   // logger(windows)
-//   return windows
 // }
 
 // /**
@@ -53,7 +41,7 @@ const getAllTabs = async (params = { sorted: true }) => {
   }, {}))
   if (params.sorted) {
     // let sortedTabs = tabs.sort(function (a, b) {
-      let sortedTabs = filteredTabs.sort(function (a, b) {
+    let sortedTabs = filteredTabs.sort(function (a, b) {
       var urlA = a.url.toUpperCase(); // ignore upper and lowercase
       var urlB = b.url.toUpperCase(); // ignore upper and lowercase
       if (urlA < urlB) {
@@ -71,9 +59,37 @@ const getAllTabs = async (params = { sorted: true }) => {
 
 }
 
-// update the tabs in localstorage to remove this tab
-const updateStorage = async () => {
+// update the tabs in localstorage to add or remove this tab 
+// action is removed or created or 'updated'
+const updateStorage = async (args = { tab: null, tabId: null, action: '' }) => {
   console.log("Update storage")
+  const { tab, tabId, action } = args
+  let stored_tabs = await chrome.storage.local.get('sorted_tabs')
+  // console.log(stored_tabs)
+
+  switch (action) {
+    case 'removed': // when tab closed
+      logger('tab removed')
+      // if removed, we only get the tabId
+      console.log('removing tab: ' + tabId)
+      // chrome.stora
+        break
+    case 'created': // when new tab opened
+      logger('tab created')
+      console.log(tab)
+      break
+    case 'updated' : // when the URL of a tabid updated (you go to a new page, in the same tab.)
+      logger('tab updated => ')
+      let { id, url } = tab
+      let filtered = stored_tabs['sorted_tabs'].filter(tb => tb.id == id)
+      console.log(filtered)
+      // update the localstorage at [id] 
+      // chrome.storage.local.get( 'sorted_tabs', (result) => {
+      //   logger('stored tabs:')
+        
+      // })
+      break
+  }
 }
 
 // Update tabs when tab removed or updated
@@ -101,6 +117,7 @@ const closeTab = async (tabId) => {
   logger('In closeTab');
   logger(tabId);
   chrome.tabs.remove(tabId);
+
 }
 
 // Get the tabs that are duplicated, passing in allTabs
@@ -111,16 +128,29 @@ const getDupes = async (allTabs) => {
 
 // Uncomment this later - this is to listen for changes in tabs and, if so, update the windows
 (function () {
-
+  // hmm?
+  // https://stackoverflow.com/questions/62852551/javascript-event-handler-working-with-an-async-data-store-api-causing-race-condi
   chrome.tabs.onRemoved.addListener(async (tab) => {
     logger('chrome.tabs.onRemoved.addListener')
-    await updateStorage(tab);
+    console.log('tab closed;')
+    logger(tab)
+    await updateStorage({ tabId: tab, action: 'removed' });
   });
 
-  chrome.tabs.onCreated.addListener((tab) => {
+  chrome.tabs.onCreated.addListener(async (tab) => {
     logger('chrome.tabs.onCreated.addListener')
-    // getAllWindows();
+    await updateStorage({ tab: tab, action: 'created' });
   });
+
+  chrome.tabs.onUpdated.addListener(
+    async (tabId, changeInfo, tab) => {
+      if (changeInfo.url) { 
+        logger('url changed')
+        console.log(tab)
+        await updateStorage({ tab: tab, action: 'updated' });
+      }
+    }
+  )
 
 
 }());
@@ -146,19 +176,24 @@ const init = async () => {
 
   let mytabs = await getAllTabs({ sorted: true })
   TABS = mytabs.tabs;
-  SORTEDTABS = mytabs.sortedTabs;
+  SORTEDTABS = mytabs.sortedTabs; // TODO - sorting doesn't take into account www vs non-www (so if google.com and www.google.com are both open, they would not be deduped)
 
-  chrome.storage.local.set({ 'sorted_tabs': SORTEDTABS }, () => {
+  // map to id:tab format
+  let SORTEDTABS2 = {}
+  mytabs.sortedTabs.forEach(tb => SORTEDTABS2[tb.id] = tb)
+
+  logger("SORTED TABS 2")
+  // logger(SORTEDTABS2)
+
+  chrome.storage.local.set({ 'sorted_tabs': SORTEDTABS2 }, () => {
     logger('Set sorted tabs')
   })
 
   logger(SORTEDTABS)
-
-
-
 }
 
 // Listen for the sent message from popup.js
+// Do this => https://stackoverflow.com/questions/54126343/how-to-fix-unchecked-runtime-lasterror-the-message-port-closed-before-a-respon
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   logger("REQUEST:");
   logger(request)
@@ -176,9 +211,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
     (async (req) => {
       await closeTab(req.tabId)
+      await updateStorage({ tabId: tabId, action: 'removed' })
       sendResponse('tab closed!')
     })(request);
-
   }
-
+  return true;// ? I need to make this a promise anyway
 });
