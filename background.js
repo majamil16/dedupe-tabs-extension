@@ -80,7 +80,7 @@ const updateStorage = async (args = { tab: null, tabId: null, action: '' }) => {
       console.log(tab)
       // add the tab  to localstorage
 
-      //await chrome.storage.local.set({ 'sorted_tabs': {...stored_tabs, [tabId]:tab} })
+      await chrome.storage.local.set({ 'sorted_tabs': {...stored_tabs['sorted_tabs'], [tab.id]:tab} })
       logger('tab added to storage.')
 
       break
@@ -156,7 +156,7 @@ const getDupes = async (allTabs) => {
 
   chrome.tabs.onUpdated.addListener(
     async (tabId, changeInfo, tab) => {
-      if (changeInfo.url) { 
+      if (changeInfo.url) {  // || changeInfo.pendingUrl ? 
         logger('url changed')
         console.log(tab)
         await updateStorage({ tab: tab, action: 'updated' });
