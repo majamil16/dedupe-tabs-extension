@@ -66,28 +66,40 @@ const updateStorage = async (args = { tab: null, tabId: null, action: '' }) => {
   const { tab, tabId, action } = args
   let stored_tabs = await chrome.storage.local.get('sorted_tabs')
   // console.log(stored_tabs)
-
+  console.log('awaited.')
   switch (action) {
     case 'removed': // when tab closed
       logger('tab removed')
       // if removed, we only get the tabId
       console.log('removing tab: ' + tabId)
-      // chrome.stora
-        break
+
+
+      break
     case 'created': // when new tab opened
       logger('tab created')
       console.log(tab)
+      // add the tab  to localstorage
+
+      //await chrome.storage.local.set({ 'sorted_tabs': {...stored_tabs, [tabId]:tab} })
+      logger('tab added to storage.')
+
       break
     case 'updated' : // when the URL of a tabid updated (you go to a new page, in the same tab.)
       logger('tab updated => ')
       let { id, url } = tab
-      let filtered = stored_tabs['sorted_tabs'].filter(tb => tb.id == id)
+      let filtered = stored_tabs['sorted_tabs'][id]
+
       console.log(filtered)
+      console.log('old url : ' + filtered.url)
+      console.log('new url : ' +  url)
       // update the localstorage at [id] 
-      // chrome.storage.local.get( 'sorted_tabs', (result) => {
-      //   logger('stored tabs:')
-        
-      // })
+      stored_tabs['sorted_tabs'][id].url = url
+  
+      await chrome.storage.local.set({ 'sorted_tabs': stored_tabs['sorted_tabs'] }) // ['sorted_tabs'] key otherwise get infinite nesting of the object :(
+      
+      
+      console.log('updated ' + filtered.url + " to " + url) // TODO - filtered.url is giving the wrong (NEW! instead of old) value
+      
       break
   }
 }
